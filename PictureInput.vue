@@ -539,7 +539,7 @@ export default {
       .then(imageBlob => {
         let e = { target: { files: [] } }
         const fileName = options.fileName || source.split('/').slice(-1)[0]
-        let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('?')[0].split('.').slice(-1)[0].split('?')[0]))
+        let mediaType = options.mediaType || (fileName.indexOf('.') === -1 && imageBlob.type) || ('image/' + (options.fileType || fileName.split('?')[0].split('.').slice(-1)[0].split('?')[0]))
         mediaType = mediaType.replace('jpg', 'jpeg')
         mediaType = mediaType.replace('image/svg', 'image/svg+xml')
         if (mediaType === 'image/svg') {
