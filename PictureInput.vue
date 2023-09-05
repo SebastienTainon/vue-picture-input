@@ -261,7 +261,7 @@ export default {
       if (!files.length) {
         return
       }
-      if (files[0].size <= 0 || files[0].size > this.size * 1024 * 1024) {
+      if (files[0].size <= 0 || files[0].size > this.size * 1000 * 1000) {
         this.$emit('error', {
           type: 'fileSize',
           fileSize: files[0].size,
