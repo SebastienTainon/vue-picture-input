@@ -267,7 +267,7 @@ export default {
           fileSize: files[0].size,
           fileType: files[0].type,
           fileName: files[0].name,
-          message: this.strings.fileSize + ' (' + this.size + 'MB)'
+          message: this.strings.fileSize + ' (' + this.size + ' Mo)'
         })
         return
       }
