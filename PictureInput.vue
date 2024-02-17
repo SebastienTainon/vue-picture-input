@@ -327,7 +327,8 @@ export default {
             }
             this.drawImage(this.imageObject)
           }
-          this.imageObject.src = this.image
+          this.imageObject.src = this.image;
+          this.$emit('changed', this.image);
         }
         reader.readAsDataURL(file)
       })
