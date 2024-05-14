@@ -56,5 +56,8 @@
     ]
   },
   "unpkg": "umd/vue-picture-input.js",
-  "jsdelivr": "umd/vue-picture-input.js"
+  "jsdelivr": "umd/vue-picture-input.js",
+  "dependencies": {
+    "heic2any": "^0.0.4"
+  }
 }

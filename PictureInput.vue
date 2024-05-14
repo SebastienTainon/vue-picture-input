@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import heic2any from "heic2any";
+
 export default {
   name: 'picture-input',
   props: {
@@ -313,25 +315,54 @@ export default {
     loadImage (file, prefill) {
       this.getEXIFOrientation(file, orientation => {
         this.setOrientation(orientation)
-        let reader = new FileReader()
-        reader.onload = e => {
-          this.image = e.target.result
-          this.imageObject = new Image()
-          this.imageObject.onload = () => {
-            if (this.autoToggleAspectRatio) {
-              let canvasOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
-              let imageOrientation = this.getOrientation(this.imageObject.width, this.imageObject.height)
-              if (canvasOrientation !== imageOrientation) {
-                this.rotateCanvas()
-              }
+
+        this.convertHeicToJpg(file)
+            .then(heicToJpgResult => {
+              this.loadCorrectImage(heicToJpgResult)
+            })
+            .catch((e) => {
+              this.loadCorrectImage(file);
+            });
+      });
+    },
+    loadCorrectImage(result) {
+      let reader = new FileReader()
+      reader.onload = e => {
+        this.image = e.target.result
+        this.imageObject = new Image()
+        this.imageObject.onload = () => {
+          if (this.autoToggleAspectRatio) {
+            let canvasOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
+            let imageOrientation = this.getOrientation(this.imageObject.width, this.imageObject.height)
+            if (canvasOrientation !== imageOrientation) {
+              this.rotateCanvas()
             }
-            this.drawImage(this.imageObject)
           }
-          this.imageObject.src = this.image;
-          this.$emit('changed', this.image);
+          this.drawImage(this.imageObject);
         }
-        reader.readAsDataURL(file)
-      })
+        this.imageObject.src = this.image;
+      }
+      reader.readAsDataURL(result);
+
+      this.getBlobFromFile(result)
+          .then(blob => {
+            const file = new File([blob], 'image.jpg', blob);
+            this.$emit('change', file);
+          })
+    },
+    async getBlobFromFile(file) {
+      let blobURL = URL.createObjectURL(file);
+      let blobRes = await fetch(blobURL);
+
+      return await blobRes.blob();
+    },
+    async convertHeicToJpg(file) {
+      const blob = await this.getBlobFromFile(file);
+
+      return await heic2any({
+        blob,
+        toType: "image/jpeg",
+      });
     },
     drawImage (image) {
       this.imageWidth = image.width
