@@ -29,6 +29,8 @@
       <button v-if="imageSelected && !hideChangeButton" @click.prevent="selectImage" :class="buttonClass" type="button">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass" type="button">{{ strings.remove }}</button>
       <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass" type="button">{{ strings.aspect }}</button>
+      <button v-if="imageSelected && toggleOffsetRatio" @click.prevent="changeOffsetRatio(-10)" :class="removeButtonClass" type="button">⌃</button>
+      <button v-if="imageSelected && toggleOffsetRatio" @click.prevent="changeOffsetRatio(10)" :class="removeButtonClass" type="button">⌄</button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass" type="button">{{ strings.select }}</button>
@@ -148,7 +150,15 @@ export default {
       default: () => {
         return {}
       }
-    }
+    },
+    toggleOffsetRatio: {
+      type: Boolean,
+      default: false,
+    },
+    offsetRatio: {
+      type: Number,
+      default: 50,
+    },
   },
   watch: {
     prefill () {
@@ -178,8 +188,8 @@ export default {
         selected: '<p>Photo successfully selected!</p>',
         fileSize: 'The file size exceeds the limit',
         fileType: 'This file type is not supported.'
-      }
-    }
+      },
+    };
   },
   mounted () {
     this.updateStrings()
@@ -376,10 +386,10 @@ export default {
       if (this.crop) {
         if (this.imageRatio >= previewRatio) {
           scaledWidth = scaledHeight * this.imageRatio
-          offsetX = (this.previewWidth - scaledWidth) / 2
+          offsetX = (this.previewWidth - scaledWidth) * this.offsetRatio / 100;
         } else {
           scaledHeight = scaledWidth / this.imageRatio
-          offsetY = (this.previewHeight - scaledHeight) / 2
+          offsetY = (this.previewHeight - scaledHeight) * this.offsetRatio / 100;
         }
       } else {
         if (this.imageRatio >= previewRatio) {
@@ -411,6 +421,13 @@ export default {
     },
     selectImage () {
       this.$refs.fileInput.click()
+    },
+    changeOffsetRatio(increment) {
+      const newOffsetRatio = Math.max(0, Math.min(100, Math.round(this.offsetRatio + increment)));
+      this.$emit('new-ratio', newOffsetRatio);
+      setTimeout(() => {
+        this.drawImage(this.imageObject);
+      });
     },
     removeImage () {
       this.$refs.fileInput.value = ''
