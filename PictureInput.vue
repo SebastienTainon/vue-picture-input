@@ -29,8 +29,12 @@
       <button v-if="imageSelected && !hideChangeButton" @click.prevent="selectImage" :class="buttonClass" type="button">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass" type="button">{{ strings.remove }}</button>
       <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass" type="button">{{ strings.aspect }}</button>
-      <button v-if="imageSelected && toggleOffsetRatio" @click.prevent="changeOffsetRatio(-10)" :class="removeButtonClass" type="button">⌃</button>
-      <button v-if="imageSelected && toggleOffsetRatio" @click.prevent="changeOffsetRatio(10)" :class="removeButtonClass" type="button">⌄</button>
+      <button v-if="imageSelected && toggleOffsetRatio" @click.prevent="changeOffsetRatio(-10)" :class="moveButtonClass" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" /></svg>
+      </button>
+      <button v-if="imageSelected && toggleOffsetRatio" @click.prevent="changeOffsetRatio(10)" :class="moveButtonClass" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>
+      </button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass" type="button">{{ strings.select }}</button>
@@ -89,6 +93,10 @@ export default {
     removeButtonClass: {
       type: String,
       default: 'btn btn-secondary button secondary'
+    },
+    moveButtonClass: {
+      type: String,
+      default: 'btn btn-secondary button secondary move-button'
     },
     aspectButtonClass: {
       type: String,
@@ -157,7 +165,7 @@ export default {
     },
     offsetRatio: {
       type: Number,
-      default: 50,
+      default: 30,
     },
   },
   watch: {
@@ -213,7 +221,7 @@ export default {
       this.fileTypes = this.accept.split(',')
       this.fileTypes = this.fileTypes.map(s => s.trim())
     }
-    this.canvasWidth = this.width != Number.MAX_SAFE_INTEGER ? this.width : this.$refs.container.clientWidth 
+    this.canvasWidth = this.width != Number.MAX_SAFE_INTEGER ? this.width : this.$refs.container.clientWidth
     this.canvasHeight = this.height != Number.MAX_SAFE_INTEGER ? this.height : this.canvasWidth
     this.previewWidth = this.canvasWidth
     this.previewHeight = this.canvasHeight
@@ -291,6 +299,10 @@ export default {
       this.fileModified = files[0].lastModified
       this.fileType = files[0].type.split(';')[0]
 
+      if (!prefill) {
+        this.$emit('new-ratio', 30);
+      }
+
       if (this.accept === 'image/*') {
         if (this.fileType.substr(0, 6) !== 'image/') {
           return
@@ -328,14 +340,14 @@ export default {
 
         this.convertHeicToJpg(file)
             .then(heicToJpgResult => {
-              this.loadCorrectImage(heicToJpgResult)
+              this.loadCorrectImage(heicToJpgResult, prefill)
             })
             .catch((e) => {
-              this.loadCorrectImage(file);
+              this.loadCorrectImage(file, prefill);
             });
       });
     },
-    loadCorrectImage(result) {
+    loadCorrectImage(result, prefill) {
       let reader = new FileReader()
       reader.onload = e => {
         this.image = e.target.result
@@ -357,7 +369,9 @@ export default {
       this.getBlobFromFile(result)
           .then(blob => {
             const file = new File([blob], 'image.jpg', blob);
-            this.$emit('change', file);
+            if (!prefill) {
+              this.$emit('change', file);
+            }
           })
     },
     async getBlobFromFile(file) {
@@ -678,5 +692,9 @@ button {
 }
 input[type=file] {
   display: none;
+}
+.move-button svg {
+  width: 24px;
+  height: 24px;
 }
 </style>
